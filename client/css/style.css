@@ -1,0 +1,89 @@
+body {
+  /* background-color:rgb(242,242,242);  */
+  background-color: rgb(221, 254, 255);
+}
+.main{
+  display: grid;
+  grid-template-columns: 20% 70% 10%;
+  /* grid-template-rows: 50px 50px; */
+}
+
+#project{
+  margin-bottom: 8px;
+  height: 20px;  
+}
+#recurring{
+  margin-bottom: 5px;
+}
+#todo-box{
+  text-align: left;
+  margin-top: 5px;
+  margin-bottom: 5px;  
+  width: 80%;
+  height: 15px;
+}
+#submit{
+  padding: 3px;
+  border-radius: 3px; 
+  border-color: rgb(185, 253, 255);  
+  width: 30%;
+  background-color: rgb(185, 253, 255);
+}
+.left{
+  padding-left: 10px;
+  background-color: rgb(221, 254, 255); 
+}
+/* MAIN TO DO SECTION */
+.todo-main{
+  display: grid;
+  grid-template-columns: 80% 20%;
+  /* grid-template-rows: 50px 50px; */
+  text-align: left;
+  background-color: rgb(173, 254, 255);  
+  
+}
+ul{
+  list-style: none;
+}
+
+/* INDIVIDUAL TODOS */
+.list-item-header{
+  font-size: large;
+  font-weight: 100;
+}
+.list-item-header-grid{
+  display: grid;
+  grid-template-columns: 30% 65% 5%;
+}
+.list-item-grid{
+  display: grid;
+  grid-template-columns: 30% 65% 5%;
+}
+.list-item{
+  min-width: 100%;
+  /* background-color: rgb(0, 217, 255); */
+  background-color: inherit;
+}
+/* .item-header{
+  text-align: center;
+}
+.project-header{
+  text-align: center;
+} */
+.item{
+  width: 100%;
+  padding-left: 2%;
+  padding-right: 10%;
+  padding-bottom: 8px;
+  background-color: inherit;
+}
+.project{
+background-color: inherit;
+}
+.delete-header{
+  text-align: center;
+}
+.delete{
+  text-align: center;
+  background-color: inherit;
+}
