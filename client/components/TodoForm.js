@@ -28,10 +28,8 @@ class TodoForm extends React.Component {
             name="value"
             type="text"
             placeholder="give me a todo"
-            value={this.props.value}
             onChange={this.props.handleInputChange} />
           <input id="submit" type="submit" value="Submit" />
-          {/* <Dropdown options={options} onChange={this._onSelect} value={defaultOption} placeholder="Select an option" /> */}
         </form>
       </div>
     );

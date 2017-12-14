@@ -27,16 +27,26 @@ app.use(express.static(path.join(__dirname, '../')));
 
 // add new todo data to database
 app.post('/api', todoController.createItem, todoController.getAllTodos, (req, res) => {
+  console.log('post')
   res.status(200);
   res.end();
 })
 // get data on page load
 app.get('/api', todoController.getAllTodos, (req, res) => {
-  console.log('/ get: ', req.body)
-  res.contentType('application/json');  
+  // console.log('/ get: ', req.body)
+  console.log('get');
+  // res.contentType('application/json');  
   res.status(200);
   res.send(req.body);
   // res.end();
+})
+
+// Delete Item by ID if checkbox clicked
+app.delete('/api', todoController.deleteItem, (req,res) => {
+  console.log('delete')
+  // res.contentType('application/json');  
+  res.status(200);
+  res.send(req.body);
 })
 
 // app.get('/api', todoController.createItem, todoController.getAllTodos, (req, res) => {

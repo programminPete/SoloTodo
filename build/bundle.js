@@ -60,7 +60,7 @@
 
 	var _App2 = _interopRequireDefault(_App);
 
-	var _NotFound = __webpack_require__(217);
+	var _NotFound = __webpack_require__(215);
 
 	var _NotFound2 = _interopRequireDefault(_NotFound);
 
@@ -25011,13 +25011,9 @@
 
 	var _TodoForm2 = _interopRequireDefault(_TodoForm);
 
-	var _TodoList = __webpack_require__(216);
+	var _TodoList = __webpack_require__(214);
 
 	var _TodoList2 = _interopRequireDefault(_TodoList);
-
-	var _reactDropdown = __webpack_require__(214);
-
-	var _reactDropdown2 = _interopRequireDefault(_reactDropdown);
 
 	function _interopRequireDefault(obj) {
 	  return obj && obj.__esModule ? obj : { default: obj };
@@ -25064,17 +25060,14 @@
 	      project: 'general',
 	      text: '',
 	      count: 0,
-	      completed: false,
-	      delete: false
+	      completed: false
 	    };
 
 	    _this.handleInputChange = _this.handleInputChange.bind(_this);
 	    _this.handleSelectChange = _this.handleSelectChange.bind(_this);
 	    _this.handleDelete = _this.handleDelete.bind(_this);
-
 	    _this.addTodo = _this.addTodo.bind(_this);
 	    _this.loadTodos = _this.loadTodos.bind(_this);
-	    // this.deleteTodo = this.deleteTodo.bind(this); 
 	    return _this;
 	  }
 
@@ -25090,10 +25083,8 @@
 	    value: function handleInputChange(e) {
 	      // e.preventDefault();         
 	      var target = e.target;
-	      console.log('target: ', target);
 	      var value = target.type === 'checkbox' ? target.checked : target.value;
 	      var name = target.name;
-	      console.log('name, value: ', name + value);
 	      this.setState(_defineProperty({}, name, value));
 	    }
 	  }, {
@@ -25106,13 +25097,30 @@
 	    }
 	  }, {
 	    key: 'handleDelete',
+
+	    // Delete a todo item if delete checkbox is clicked
 	    value: function handleDelete(e) {
+	      var currentId = e.target.id;
+	      var tempTodos = this.state.data.slice();
 	      e.preventDefault();
 	      var target = e.target;
-	      console.log('target: ', target);
 	      var name = target.name;
-	      console.log('name, value: ', name + value);
-	      this.setState({ delete: true });
+	      var value = e.value;
+
+	      //delete from database
+	      fetch('http://localhost:8080/api', {
+	        method: 'DELETE',
+	        headers: {
+	          'Content-Type': 'application/json'
+	        },
+	        body: JSON.stringify(tempTodos[currentId])
+	      }).then(function (res) {
+	        console.log("this is res", res);
+	      }).catch(function (err) {
+	        console.log(err);
+	      });
+
+	      this.loadTodos();
 	    }
 	  }, {
 	    key: 'addTodo',
@@ -25178,12 +25186,10 @@
 	        return res.json();
 	      }).then(function (myBlob) {
 	        if (myBlob.loadedTodos.length) {
-	          // console.log(myBlob.loadedTodos);
 	          var dbTodos = [];
 	          myBlob.loadedTodos.map(function (item) {
 	            return dbTodos.push(item);
 	          });
-	          // console.log('dbTodos: ', dbTodos);
 	          _this2.setState({
 	            data: myBlob.loadedTodos,
 	            count: myBlob.loadedTodos.length
@@ -25193,17 +25199,6 @@
 	          _this2.setState({ data: null });
 	        }
 	      });
-	      // console.log()
-	      // fetch('http://localhost:8080/api', {
-	      // method: 'GET',
-	      // headers: {
-	      //   'Content-Type': 'application/json'
-	      // }
-	      // }).then((res) => {
-	      //   console.log("this is res on load", res)
-	      // }).catch((err) => {
-	      //   console.log(err)
-	      // })
 	    }
 	    // TODO: remove todo handler
 	    // deleteTodo(e){
@@ -25213,7 +25208,6 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      console.log(this.state);
 	      return _react2.default.createElement('div', { className: 'main' }, _react2.default.createElement('div', { className: 'left' }, _react2.default.createElement(_Title2.default, null), _react2.default.createElement(_TodoForm2.default, {
 	        value: this.state.value,
 	        recurring: this.state.recurring,
@@ -25222,7 +25216,8 @@
 	        handleSelectChange: this.handleSelectChange,
 	        addTodo: this.addTodo })), _react2.default.createElement('div', { className: 'todo-main' }, _react2.default.createElement(_TodoList2.default, {
 	        'delete': this.state.delete,
-	        todos: this.state.data
+	        todos: this.state.data,
+	        handleDelete: this.handleDelete
 	      })), _react2.default.createElement('div', { className: 'right-margin' }));
 	    }
 	  }]);
@@ -25374,7 +25369,6 @@
 	        name: "value",
 	        type: "text",
 	        placeholder: "give me a todo",
-	        value: this.props.value,
 	        onChange: this.props.handleInputChange }), _react2.default.createElement("input", { id: "submit", type: "submit", value: "Submit" })));
 	    }
 	  }]);
@@ -25386,292 +25380,6 @@
 
 /***/ }),
 /* 214 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _react = __webpack_require__(1);
-
-	var _react2 = _interopRequireDefault(_react);
-
-	var _reactDom = __webpack_require__(37);
-
-	var _reactDom2 = _interopRequireDefault(_reactDom);
-
-	var _classnames = __webpack_require__(215);
-
-	var _classnames2 = _interopRequireDefault(_classnames);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var DEFAULT_PLACEHOLDER_STRING = 'Select...';
-
-	var Dropdown = function (_Component) {
-	  _inherits(Dropdown, _Component);
-
-	  function Dropdown(props) {
-	    _classCallCheck(this, Dropdown);
-
-	    var _this = _possibleConstructorReturn(this, (Dropdown.__proto__ || Object.getPrototypeOf(Dropdown)).call(this, props));
-
-	    _this.state = {
-	      selected: props.value || {
-	        label: props.placeholder || DEFAULT_PLACEHOLDER_STRING,
-	        value: ''
-	      },
-	      isOpen: false
-	    };
-	    _this.mounted = true;
-	    _this.handleDocumentClick = _this.handleDocumentClick.bind(_this);
-	    _this.fireChangeEvent = _this.fireChangeEvent.bind(_this);
-	    return _this;
-	  }
-
-	  _createClass(Dropdown, [{
-	    key: 'componentWillReceiveProps',
-	    value: function componentWillReceiveProps(newProps) {
-	      if (newProps.value && newProps.value !== this.state.selected) {
-	        this.setState({ selected: newProps.value });
-	      } else if (!newProps.value) {
-	        this.setState({ selected: {
-	            label: newProps.placeholder || DEFAULT_PLACEHOLDER_STRING,
-	            value: ''
-	          } });
-	      }
-	    }
-	  }, {
-	    key: 'componentDidMount',
-	    value: function componentDidMount() {
-	      document.addEventListener('click', this.handleDocumentClick, false);
-	      document.addEventListener('touchend', this.handleDocumentClick, false);
-	    }
-	  }, {
-	    key: 'componentWillUnmount',
-	    value: function componentWillUnmount() {
-	      this.mounted = false;
-	      document.removeEventListener('click', this.handleDocumentClick, false);
-	      document.removeEventListener('touchend', this.handleDocumentClick, false);
-	    }
-	  }, {
-	    key: 'handleMouseDown',
-	    value: function handleMouseDown(event) {
-	      if (this.props.onFocus && typeof this.props.onFocus === 'function') {
-	        this.props.onFocus(this.state.isOpen);
-	      }
-	      if (event.type === 'mousedown' && event.button !== 0) return;
-	      event.stopPropagation();
-	      event.preventDefault();
-
-	      if (!this.props.disabled) {
-	        this.setState({
-	          isOpen: !this.state.isOpen
-	        });
-	      }
-	    }
-	  }, {
-	    key: 'setValue',
-	    value: function setValue(value, label) {
-	      var newState = {
-	        selected: {
-	          value: value,
-	          label: label
-	        },
-	        isOpen: false
-	      };
-	      this.fireChangeEvent(newState);
-	      this.setState(newState);
-	    }
-	  }, {
-	    key: 'fireChangeEvent',
-	    value: function fireChangeEvent(newState) {
-	      if (newState.selected !== this.state.selected && this.props.onChange) {
-	        this.props.onChange(newState.selected);
-	      }
-	    }
-	  }, {
-	    key: 'renderOption',
-	    value: function renderOption(option) {
-	      var _classNames;
-
-	      var optionClass = (0, _classnames2.default)((_classNames = {}, _defineProperty(_classNames, this.props.baseClassName + '-option', true), _defineProperty(_classNames, 'is-selected', option === this.state.selected), _classNames));
-
-	      var value = option.value || option.label || option;
-	      var label = option.label || option.value || option;
-
-	      return _react2.default.createElement(
-	        'div',
-	        {
-	          key: value,
-	          className: optionClass,
-	          onMouseDown: this.setValue.bind(this, value, label),
-	          onClick: this.setValue.bind(this, value, label) },
-	        label
-	      );
-	    }
-	  }, {
-	    key: 'buildMenu',
-	    value: function buildMenu() {
-	      var _this2 = this;
-
-	      var _props = this.props,
-	          options = _props.options,
-	          baseClassName = _props.baseClassName;
-
-	      var ops = options.map(function (option) {
-	        if (option.type === 'group') {
-	          var groupTitle = _react2.default.createElement(
-	            'div',
-	            { className: baseClassName + '-title' },
-	            option.name
-	          );
-	          var _options = option.items.map(function (item) {
-	            return _this2.renderOption(item);
-	          });
-
-	          return _react2.default.createElement(
-	            'div',
-	            { className: baseClassName + '-group', key: option.name },
-	            groupTitle,
-	            _options
-	          );
-	        } else {
-	          return _this2.renderOption(option);
-	        }
-	      });
-
-	      return ops.length ? ops : _react2.default.createElement(
-	        'div',
-	        { className: baseClassName + '-noresults' },
-	        'No options found'
-	      );
-	    }
-	  }, {
-	    key: 'handleDocumentClick',
-	    value: function handleDocumentClick(event) {
-	      if (this.mounted) {
-	        if (!_reactDom2.default.findDOMNode(this).contains(event.target)) {
-	          if (this.state.isOpen) {
-	            this.setState({ isOpen: false });
-	          }
-	        }
-	      }
-	    }
-	  }, {
-	    key: 'render',
-	    value: function render() {
-	      var _classNames2;
-
-	      var _props2 = this.props,
-	          baseClassName = _props2.baseClassName,
-	          className = _props2.className;
-
-
-	      var disabledClass = this.props.disabled ? 'Dropdown-disabled' : '';
-	      var placeHolderValue = typeof this.state.selected === 'string' ? this.state.selected : this.state.selected.label;
-	      var value = _react2.default.createElement(
-	        'div',
-	        { className: baseClassName + '-placeholder' },
-	        placeHolderValue
-	      );
-	      var menu = this.state.isOpen ? _react2.default.createElement(
-	        'div',
-	        { className: baseClassName + '-menu' },
-	        this.buildMenu()
-	      ) : null;
-
-	      var dropdownClass = (0, _classnames2.default)((_classNames2 = {}, _defineProperty(_classNames2, className, true), _defineProperty(_classNames2, baseClassName + '-root', true), _defineProperty(_classNames2, 'is-open', this.state.isOpen), _classNames2));
-
-	      return _react2.default.createElement(
-	        'div',
-	        { className: dropdownClass },
-	        _react2.default.createElement(
-	          'div',
-	          { className: baseClassName + '-control ' + disabledClass, onMouseDown: this.handleMouseDown.bind(this), onTouchEnd: this.handleMouseDown.bind(this) },
-	          value,
-	          _react2.default.createElement('span', { className: baseClassName + '-arrow' })
-	        ),
-	        menu
-	      );
-	    }
-	  }]);
-
-	  return Dropdown;
-	}(_react.Component);
-
-	Dropdown.defaultProps = { baseClassName: 'Dropdown' };
-	exports.default = Dropdown;
-
-
-/***/ }),
-/* 215 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	  Copyright (c) 2016 Jed Watson.
-	  Licensed under the MIT License (MIT), see
-	  http://jedwatson.github.io/classnames
-	*/
-	/* global define */
-
-	(function () {
-		'use strict';
-
-		var hasOwn = {}.hasOwnProperty;
-
-		function classNames () {
-			var classes = [];
-
-			for (var i = 0; i < arguments.length; i++) {
-				var arg = arguments[i];
-				if (!arg) continue;
-
-				var argType = typeof arg;
-
-				if (argType === 'string' || argType === 'number') {
-					classes.push(arg);
-				} else if (Array.isArray(arg)) {
-					classes.push(classNames.apply(null, arg));
-				} else if (argType === 'object') {
-					for (var key in arg) {
-						if (hasOwn.call(arg, key) && arg[key]) {
-							classes.push(key);
-						}
-					}
-				}
-			}
-
-			return classes.join(' ');
-		}
-
-		if (typeof module !== 'undefined' && module.exports) {
-			module.exports = classNames;
-		} else if (true) {
-			// register as 'classnames', consistent with npm package name
-			!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
-				return classNames;
-			}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-		} else {
-			window.classNames = classNames;
-		}
-	}());
-
-
-/***/ }),
-/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -25736,9 +25444,12 @@
 	        return _react2.default.createElement("div", null);
 	      }
 	      var todos = this.props.todos;
+
 	      return _react2.default.createElement("div", { className: "todo-list" }, _react2.default.createElement("ul", null, _react2.default.createElement("li", { className: "list-item-header" }, _react2.default.createElement("div", { className: "list-item-header-grid" }, _react2.default.createElement("span", { className: "item-header" }, "ToDo Item"), _react2.default.createElement("span", { className: "project-header" }, "Project"), _react2.default.createElement("span", { className: "delete-header" }, "x"))), _react2.default.createElement("hr", null), todos.map(function (todo, idx) {
+	        console.log(todo.idNum);
+	        console.log('true id: ', todo._id);
 	        return _react2.default.createElement("li", { className: "list-item", key: idx }, _react2.default.createElement("div", { className: "list-item-grid" }, _react2.default.createElement("span", { className: "item" }, todo.todoItem), _react2.default.createElement("span", { className: "project" }, todo.project), _react2.default.createElement("span", { className: "delete" }, _react2.default.createElement("input", {
-	          id: _this2.props.idNum,
+	          id: idx,
 	          name: "delete",
 	          type: "checkbox",
 	          checked: _this2.props.delete,
@@ -25753,7 +25464,7 @@
 	exports.default = TodoList;
 
 /***/ }),
-/* 217 */
+/* 215 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';

@@ -7,6 +7,7 @@ class TodoList extends React.Component {
       return <div />
     }
     let todos = this.props.todos;
+
     return (
       <div className="todo-list">
         <ul>
@@ -20,6 +21,8 @@ class TodoList extends React.Component {
           </li>
           <hr/>
         {todos.map( (todo, idx) => {
+          console.log(todo.idNum)
+          console.log('true id: ', todo._id)
           return (
             <li className="list-item" key={idx}>
               <div className="list-item-grid"> 
@@ -27,11 +30,11 @@ class TodoList extends React.Component {
                 <span className="project">{todo.project}</span>
                 <span className='delete'>
                   <input
-                    id={this.props.idNum}
+                    id={idx}
                     name="delete"
                     type="checkbox"
                     checked={this.props.delete}
-                    onChange={this.props.handleDelete} />
+                    onChange={ this.props.handleDelete } />
                 </span>
               </div>
             </li>

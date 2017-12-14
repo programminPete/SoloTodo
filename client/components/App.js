@@ -2,7 +2,6 @@ import React from 'react';
 import Title from './Title';
 import TodoForm from './TodoForm';
 import TodoList from './TodoList';
-import Dropdown from 'react-dropdown';
 
 
 class App extends React.Component {
@@ -16,16 +15,13 @@ class App extends React.Component {
       text: '',
       count: 0,
       completed: false,
-      delete: false
     };
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSelectChange = this.handleSelectChange.bind(this);
     this.handleDelete = this.handleDelete.bind(this);
-    
     this.addTodo = this.addTodo.bind(this); 
     this.loadTodos = this.loadTodos.bind(this);
-    // this.deleteTodo = this.deleteTodo.bind(this); 
   }
   componentDidMount() {
     this.loadTodos();
@@ -34,10 +30,8 @@ class App extends React.Component {
   handleInputChange(e){
     // e.preventDefault();         
     const target = e.target;
-    console.log('target: ', target)
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
-    console.log('name, value: ', name + value)
     this.setState({
       [name]: value
     })
@@ -48,13 +42,29 @@ class App extends React.Component {
     this.setState({project: e.target.value});
   };
   
+  // Delete a todo item if delete checkbox is clicked
   handleDelete(e){
-    e.preventDefault();         
+    let currentId = e.target.id
+    let tempTodos = this.state.data.slice();
+    e.preventDefault();
     const target = e.target;
-    console.log('target: ', target);
     const name = target.name;
-    console.log('name, value: ', name + value)
-    this.setState({delete: true})
+    const value = e.value;    
+    
+    //delete from database
+    fetch('http://localhost:8080/api', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(tempTodos[currentId])
+    }).then((res) => {
+      console.log("this is res", res)
+    }).catch((err) => {
+      console.log(err)
+    })
+
+    this.loadTodos();
   };
 
   addTodo(e){   // review how you're doing this -- should probably be doing a copy here
@@ -115,10 +125,8 @@ class App extends React.Component {
       return res.json();
     }).then((myBlob) => {
       if(myBlob.loadedTodos.length){
-        // console.log(myBlob.loadedTodos);
         let dbTodos = [];
         myBlob.loadedTodos.map( (item) => dbTodos.push(item))
-        // console.log('dbTodos: ', dbTodos);
         this.setState({
           data: myBlob.loadedTodos,
           count: myBlob.loadedTodos.length
@@ -128,24 +136,12 @@ class App extends React.Component {
         this.setState({data: null})
       }
     })
-    // console.log()
-    // fetch('http://localhost:8080/api', {
-    // method: 'GET',
-    // headers: {
-    //   'Content-Type': 'application/json'
-    // }
-    // }).then((res) => {
-    //   console.log("this is res on load", res)
-    // }).catch((err) => {
-    //   console.log(err)
-    // })
   }
   // TODO: remove todo handler
   // deleteTodo(e){
   //   console.log(e);
   // TODO: filterResults
   render() {  
-    console.log(this.state)  
     return (
       <div className="main">
       <div className="left">
@@ -163,6 +159,7 @@ class App extends React.Component {
         <TodoList
           delete={this.state.delete}
           todos={this.state.data}
+          handleDelete={this.handleDelete}
         />
       </div>
       <div className="right-margin">

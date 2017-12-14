@@ -72,5 +72,18 @@ todoController.UpdateItem = (req, res, next) => {
   // });
 };
 
+todoController.deleteItem = (req, res, next) => {
+  console.log('delete Item', req.body)
+  //note: was req.params.id
+  Item.findByIdAndRemove(req.body._id, function(err){
+    if(err){
+      res.send(err)
+    }else{
+      res.json({message: 'item deleted'});
+      next();
+    }
+  })
+}
+
 
 module.exports = todoController;
