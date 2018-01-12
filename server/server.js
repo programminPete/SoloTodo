@@ -35,35 +35,31 @@ app.post('/api', todoController.createItem, todoController.getAllTodos, (req, re
 app.get('/api', todoController.getAllTodos, (req, res) => {
   // console.log('/ get: ', req.body)
   console.log('get');
-  // res.contentType('application/json');  
   res.status(200);
   res.send(req.body);
-  // res.end();
+})
+// get data sorted
+app.get('/filtered', todoController.getProjectTodos, (req, res) => {
+  // console.log('/ get: ', req.body)
+  console.log('req query project: ', req.query.project)
+  console.log('req query cfilter: ', req.query.complete)  
+  console.log('get sorted');
+  res.status(200);
+  res.send(req.body);
 })
 
 // Delete Item by ID if checkbox clicked
 app.delete('/api', todoController.deleteItem, (req,res) => {
-  console.log('delete')
-  // res.contentType('application/json');  
+  console.log('delete');
   res.status(200);
   res.send(req.body);
 })
 
-// app.get('/api', todoController.createItem, todoController.getAllTodos, (req, res) => {
-//   res.status(200);
-//   res.end();
-// })
-
-// app.use('/', (req, res) => {
-//   console.log('/secret get: ',req.body.loadedTodos) 
-//   todoController.getAllTodos((err,items) => {
-//     if(err) throw err;
-//     console.log(items)
-//     res.send({items: items})
-//   }) 
-//   res.status(200);
-//   res.end();
-// })
+app.put('/api', todoController.completeItem, (req,res) =>{
+  console.log('complete');
+  res.status(200);
+  res.send(req.body);
+})
 
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));

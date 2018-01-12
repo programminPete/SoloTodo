@@ -60,7 +60,7 @@
 
 	var _App2 = _interopRequireDefault(_App);
 
-	var _NotFound = __webpack_require__(215);
+	var _NotFound = __webpack_require__(219);
 
 	var _NotFound2 = _interopRequireDefault(_NotFound);
 
@@ -25015,6 +25015,14 @@
 
 	var _TodoList2 = _interopRequireDefault(_TodoList);
 
+	var _FilterTodos = __webpack_require__(216);
+
+	var _FilterTodos2 = _interopRequireDefault(_FilterTodos);
+
+	var _NoteAdder = __webpack_require__(217);
+
+	var _NoteAdder2 = _interopRequireDefault(_NoteAdder);
+
 	function _interopRequireDefault(obj) {
 	  return obj && obj.__esModule ? obj : { default: obj };
 	}
@@ -25060,12 +25068,19 @@
 	      project: 'general',
 	      text: '',
 	      count: 0,
-	      completed: false
+	      completed: false,
+	      pFilterOption: 'all',
+	      cFilterOption: 'all'
 	    };
 
 	    _this.handleInputChange = _this.handleInputChange.bind(_this);
 	    _this.handleSelectChange = _this.handleSelectChange.bind(_this);
+	    _this.handleDoubleClick = _this.handleDoubleClick.bind(_this);
+	    _this.handleMouseLeave = _this.handleMouseLeave.bind(_this);
+	    _this.handleComplete = _this.handleComplete.bind(_this);
 	    _this.handleDelete = _this.handleDelete.bind(_this);
+	    _this.handleProjectFilterChange = _this.handleProjectFilterChange.bind(_this);
+	    _this.handleCompleteFilterChange = _this.handleCompleteFilterChange.bind(_this);
 	    _this.addTodo = _this.addTodo.bind(_this);
 	    _this.loadTodos = _this.loadTodos.bind(_this);
 	    return _this;
@@ -25076,6 +25091,28 @@
 	    value: function componentDidMount() {
 	      this.loadTodos();
 	    }
+	  }, {
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      this.loadTodos();
+	    }
+	  }, {
+	    key: 'handleProjectFilterChange',
+	    value: function handleProjectFilterChange(e) {
+	      var target = e.target;
+	      var value = target.value;
+	      this.setState({ pFilterOption: value });
+	      this.loadTodos();
+	    }
+	  }, {
+	    key: 'handleCompleteFilterChange',
+	    value: function handleCompleteFilterChange(e) {
+	      var target = e.target;
+	      var value = target.value;
+	      this.setState({ cFilterOption: value });
+	      this.loadTodos();
+	    }
+
 	    // Handle the todos
 
 	  }, {
@@ -25096,13 +25133,66 @@
 	      this.setState({ project: e.target.value });
 	    }
 	  }, {
-	    key: 'handleDelete',
-
-	    // Delete a todo item if delete checkbox is clicked
-	    value: function handleDelete(e) {
+	    key: 'handleDoubleClick',
+	    value: function handleDoubleClick(e) {
 	      var currentId = e.target.id;
 	      var tempTodos = this.state.data.slice();
+
+	      console.log('double clicked me');
+	      console.log(e.target.id);
+	      var itemToEdit = tempTodos.find(function (item) {
+	        return item._id === currentId;
+	      });
+	      itemToEdit.editable = true;
+	      this.setState({});
+	      // this.setState({disabled:false})
+	    }
+	  }, {
+	    key: 'handleMouseLeave',
+	    value: function handleMouseLeave(e) {
+	      var currentId = e.target.id;
+	      var tempTodos = this.state.data.slice();
+	      var itemToEdit = tempTodos.find(function (item) {
+	        return item._id === currentId;
+	      });
+	    }
+	  }, {
+	    key: 'handleComplete',
+	    value: function handleComplete(e) {
 	      e.preventDefault();
+	      var currentId = e.target.id;
+	      var tempTodos = this.state.data.slice();
+	      var itemToComplete = tempTodos.find(function (item) {
+	        return item._id === currentId;
+	      });
+	      //mark complete in database 
+	      fetch('http://localhost:8080/api', {
+	        method: 'PUT',
+	        headers: {
+	          'Content-Type': 'application/json'
+	        },
+	        body: JSON.stringify(itemToComplete)
+	      }).then(function (res) {
+	        console.log('this is res: ', res);
+	      }).catch(function (err) {
+	        console.log('complete err: ', err);
+	      });
+	      // load latest
+	      this.loadTodos();
+	    }
+	    // Delete a todo item if delete checkbox is clicked
+
+	  }, {
+	    key: 'handleDelete',
+	    value: function handleDelete(e) {
+	      e.preventDefault();
+	      var currentId = e.target.id;
+	      var tempTodos = this.state.data.slice();
+	      var itemToDelete = tempTodos.find(function (item) {
+	        return item._id === currentId;
+	      });
+	      console.log('itemToDelete: ', itemToDelete);
+
 	      var target = e.target;
 	      var name = target.name;
 	      var value = e.value;
@@ -25113,7 +25203,7 @@
 	        headers: {
 	          'Content-Type': 'application/json'
 	        },
-	        body: JSON.stringify(tempTodos[currentId])
+	        body: JSON.stringify(itemToDelete)
 	      }).then(function (res) {
 	        console.log("this is res", res);
 	      }).catch(function (err) {
@@ -25124,9 +25214,11 @@
 	    }
 	  }, {
 	    key: 'addTodo',
+
+	    // Add todos to the database, update state
 	    value: function addTodo(e) {
-	      // review how you're doing this -- should probably be doing a copy here
 	      var counter = this.state.count + 1;
+	      console.log(counter);
 	      e.preventDefault();
 	      if (counter === 1) this.state.data = [];
 	      // Date stuff: 
@@ -25145,14 +25237,11 @@
 	        notTodo: false,
 	        year: year,
 	        month: month,
-	        day: day
-	      };
-	      console.log('timeNow: ', timeNow);
-	      console.log('day: ', day);
-	      console.log('todo.day: ', todo.day);
+	        day: day,
+	        editable: false
 
-	      //update data
-	      this.state.data.push(todo);
+	        //update data
+	      };this.state.data.push(todo);
 
 	      //make push to database
 	      fetch('http://localhost:8080/api', {
@@ -25177,12 +25266,20 @@
 	        count: counter
 	      });
 	    }
+
+	    // load todos from database
+
 	  }, {
 	    key: 'loadTodos',
 	    value: function loadTodos() {
 	      var _this2 = this;
 
-	      fetch('http://localhost:8080/api').then(function (res) {
+	      var projectOption = this.state.pFilterOption;
+	      var completedOption = this.state.cFilterOption;
+	      console.log('projectOption: ', projectOption);
+	      console.log('completedOption: ', completedOption);
+
+	      fetch('http://localhost:8080/filtered?project=' + projectOption + '&complete=' + completedOption).then(function (res) {
 	        return res.json();
 	      }).then(function (myBlob) {
 	        if (myBlob.loadedTodos.length) {
@@ -25190,6 +25287,7 @@
 	          myBlob.loadedTodos.map(function (item) {
 	            return dbTodos.push(item);
 	          });
+	          console.log(myBlob);
 	          _this2.setState({
 	            data: myBlob.loadedTodos,
 	            count: myBlob.loadedTodos.length
@@ -25200,10 +25298,10 @@
 	        }
 	      });
 	    }
-	    // TODO: remove todo handler
-	    // deleteTodo(e){
-	    //   console.log(e);
+
 	    // TODO: filterResults
+
+	    // Render page
 
 	  }, {
 	    key: 'render',
@@ -25215,10 +25313,19 @@
 	        handleInputChange: this.handleInputChange,
 	        handleSelectChange: this.handleSelectChange,
 	        addTodo: this.addTodo })), _react2.default.createElement('div', { className: 'todo-main' }, _react2.default.createElement(_TodoList2.default, {
-	        'delete': this.state.delete,
+	        disabled: this.state.disabled,
 	        todos: this.state.data,
+	        handleDoubleClick: this.handleDoubleClick,
+	        handleMouseLeave: this.handleMouseLeave,
+	        handleComplete: this.handleComplete,
 	        handleDelete: this.handleDelete
-	      })), _react2.default.createElement('div', { className: 'right-margin' }));
+	      })), _react2.default.createElement('div', { className: 'right-margin' }, _react2.default.createElement(_FilterTodos2.default, {
+	        pFilterOption: this.state.pFilterOption,
+	        cFilterOption: this.state.cFilterOption,
+	        handleProjectFilterChange: this.handleProjectFilterChange,
+	        handleCompleteFilterChange: this.handleCompleteFilterChange,
+	        loadTodos: this.loadTodos
+	      })), _react2.default.createElement('div', null, _react2.default.createElement('h1', null, 'Notes to self'), _react2.default.createElement(_NoteAdder2.default, null)), _react2.default.createElement('div', null, _react2.default.createElement('ul', { className: 'notes' }, _react2.default.createElement('li', null, 'these todo-items should be color coded by project for better UX distinction'), _react2.default.createElement('li', null, 'format this to be on right side, smaller'), _react2.default.createElement('li', null, 'create a json file - and rewrite with each db call -- then can reference that each time in "thumbnail app" view, where subset of data lives, or possible a component, --> and the whole big section is just the state store -- no, this isn\'t good for changing apps -- each "app" component should hold it\'s own state.'), _react2.default.createElement('li', null, 'note, productify: -- only the \'app snapshot\' section has to follow our template, once the app is loaded in main screen, you can make it whatever color scheme works for you'), _react2.default.createElement('li', null, 'An \'archive completed\' option would be cool. if you click it - completed todo items go to be archived, instead of in completed section'), _react2.default.createElement('li', null, 'might be good to have a "click to touch" command helper section, a lot of apps could be coming from click handlers, and an easy switch to touch handlers would be helpful'), _react2.default.createElement('li', null, 'Also may be good to have a non-touch friendly version. just static, but could still be helpful for people'))));
 	    }
 	  }]);
 
@@ -25300,7 +25407,7 @@
 /* 213 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -25354,22 +25461,26 @@
 	  }
 
 	  _createClass(TodoForm, [{
-	    key: "render",
+	    key: 'componentDidMount',
 
 	    // const defaultOption = options[0]
-
+	    value: function componentDidMount() {
+	      console.log('todoForm');
+	    }
+	  }, {
+	    key: 'render',
 	    value: function render() {
-	      return _react2.default.createElement("div", null, _react2.default.createElement("form", { onSubmit: this.props.addTodo }, _react2.default.createElement("select", { id: "project", onChange: this.props.handleSelectChange, value: this.props.project }, _react2.default.createElement("option", { value: "general" }, "general"), _react2.default.createElement("option", { value: "programming" }, "programming"), _react2.default.createElement("option", { value: "moving" }, "moving"), _react2.default.createElement("option", { value: "household" }, "household")), _react2.default.createElement("br", null), _react2.default.createElement("label", null, "Recurring:", _react2.default.createElement("input", {
-	        id: "recurring",
-	        name: "recurring",
-	        type: "checkbox",
+	      return _react2.default.createElement('div', null, _react2.default.createElement('form', { onSubmit: this.props.addTodo }, _react2.default.createElement('select', { id: 'project', onChange: this.props.handleSelectChange, value: this.props.project }, _react2.default.createElement('option', { value: 'all' }, 'all'), _react2.default.createElement('option', { value: 'general' }, 'general'), _react2.default.createElement('option', { value: 'programming' }, 'programming'), _react2.default.createElement('option', { value: 'moving' }, 'moving'), _react2.default.createElement('option', { value: 'household' }, 'household'), _react2.default.createElement('option', { value: 'Rasp Pi' }, 'Rasp Pi'), _react2.default.createElement('option', { value: 'chores' }, 'chores')), _react2.default.createElement('br', null), _react2.default.createElement('label', null, 'Recurring:', _react2.default.createElement('input', {
+	        id: 'recurring',
+	        name: 'recurring',
+	        type: 'checkbox',
 	        checked: this.props.recurring,
-	        onChange: this.props.handleInputChange })), _react2.default.createElement("br", null), _react2.default.createElement("input", {
-	        id: "todo-box",
-	        name: "value",
-	        type: "text",
-	        placeholder: "give me a todo",
-	        onChange: this.props.handleInputChange }), _react2.default.createElement("input", { id: "submit", type: "submit", value: "Submit" })));
+	        onChange: this.props.handleInputChange })), _react2.default.createElement('br', null), _react2.default.createElement('input', {
+	        id: 'todo-box',
+	        name: 'value',
+	        type: 'text',
+	        placeholder: 'give me a todo',
+	        onChange: this.props.handleInputChange }), _react2.default.createElement('input', { id: 'submit', type: 'submit', value: 'Submit' })));
 	    }
 	  }]);
 
@@ -25380,6 +25491,202 @@
 
 /***/ }),
 /* 214 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () {
+	  function defineProperties(target, props) {
+	    for (var i = 0; i < props.length; i++) {
+	      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+	    }
+	  }return function (Constructor, protoProps, staticProps) {
+	    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	  };
+	}();
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _TodoComponent = __webpack_require__(215);
+
+	var _TodoComponent2 = _interopRequireDefault(_TodoComponent);
+
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { default: obj };
+	}
+
+	function _classCallCheck(instance, Constructor) {
+	  if (!(instance instanceof Constructor)) {
+	    throw new TypeError("Cannot call a class as a function");
+	  }
+	}
+
+	function _possibleConstructorReturn(self, call) {
+	  if (!self) {
+	    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+	  }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+	}
+
+	function _inherits(subClass, superClass) {
+	  if (typeof superClass !== "function" && superClass !== null) {
+	    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
+	  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+	}
+
+	var TodoList = function (_React$Component) {
+	  _inherits(TodoList, _React$Component);
+
+	  function TodoList(props) {
+	    _classCallCheck(this, TodoList);
+
+	    var _this = _possibleConstructorReturn(this, (TodoList.__proto__ || Object.getPrototypeOf(TodoList)).call(this, props));
+
+	    _this.state = {
+	      disabled: true
+	    };
+	    return _this;
+	  }
+
+	  _createClass(TodoList, [{
+	    key: 'render',
+	    value: function render() {
+	      var _this2 = this;
+
+	      if (!this.props.todos) {
+	        return _react2.default.createElement('div', null);
+	      }
+	      var todos = this.props.todos;
+
+	      return _react2.default.createElement('div', { className: 'todo-list' }, _react2.default.createElement('ul', null, _react2.default.createElement('li', { className: 'list-item-header' }, _react2.default.createElement('div', { className: 'list-item-header-grid' }, _react2.default.createElement('span', { className: 'item-header' }, 'ToDo Item'), _react2.default.createElement('span', { className: 'project-header' }, 'Project'), _react2.default.createElement('span', { className: 'complete-header' }, 'O'), _react2.default.createElement('span', { className: 'delete-header' }, 'x'))), _react2.default.createElement('hr', null), todos.map(function (todo, idx) {
+	        {/* console.log('true id: ', todo._id) */}
+	        return _react2.default.createElement('li', { className: 'list-item', key: idx }, _react2.default.createElement('div', { className: 'list-item-grid' }, _react2.default.createElement('span', { key: idx, id: todo._id, onDoubleClick: _this2.props.handleDoubleClick }, _react2.default.createElement('input', { className: 'item', id: todo._id, disabled: _this2.state.disabled, onMouseLeave: _this2.props.handleMouseLeave, placeholder: todo.todoItem })), _react2.default.createElement('span', { className: 'project', id: todo._id, onDoubleClick: function onDoubleClick(e) {
+	            _this2.props.handleDoubleClick(e);
+	          } }, todo.project), _react2.default.createElement('span', { className: 'complete' }, _react2.default.createElement('input', {
+	          id: todo._id,
+	          name: 'complete',
+	          type: 'checkbox',
+	          checked: todo.complete,
+	          onChange: _this2.props.handleComplete })), _react2.default.createElement('span', { className: 'delete' }, _react2.default.createElement('input', {
+	          id: todo._id,
+	          name: 'delete',
+	          type: 'checkbox',
+	          checked: _this2.props.delete,
+	          onChange: _this2.props.handleDelete }))));
+	      })));
+	    }
+	  }]);
+
+	  return TodoList;
+	}(_react2.default.Component);
+
+	exports.default = TodoList;
+
+/***/ }),
+/* 215 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () {
+	  function defineProperties(target, props) {
+	    for (var i = 0; i < props.length; i++) {
+	      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+	    }
+	  }return function (Constructor, protoProps, staticProps) {
+	    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	  };
+	}();
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { default: obj };
+	}
+
+	function _classCallCheck(instance, Constructor) {
+	  if (!(instance instanceof Constructor)) {
+	    throw new TypeError("Cannot call a class as a function");
+	  }
+	}
+
+	function _possibleConstructorReturn(self, call) {
+	  if (!self) {
+	    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+	  }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+	}
+
+	function _inherits(subClass, superClass) {
+	  if (typeof superClass !== "function" && superClass !== null) {
+	    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
+	  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+	}
+
+	var TodoComponent = function (_React$Component) {
+	  _inherits(TodoComponent, _React$Component);
+
+	  function TodoComponent(props) {
+	    _classCallCheck(this, TodoComponent);
+
+	    var _this = _possibleConstructorReturn(this, (TodoComponent.__proto__ || Object.getPrototypeOf(TodoComponent)).call(this, props));
+
+	    _this.state = {
+	      disabled: true
+	    };
+	    _this.handleDoubleClickLower = _this.handleDoubleClickLower.bind(_this);
+	    return _this;
+	  }
+
+	  _createClass(TodoComponent, [{
+	    key: 'handleDoubleClickLower',
+	    value: function handleDoubleClickLower(e) {
+	      var currentId = e.target.id;
+	      var tempTodos = this.state.data.slice();
+
+	      console.log('double clicked me');
+	      console.log(e.target.id);
+	      var itemToEdit = tempTodos.find(function (item) {
+	        return item._id === currentId;
+	      });
+	      itemToEdit.editable = true;
+	      // this.setState({})
+	      // this.setState({disabled:false})
+	    }
+	    // if (!this.props.todos) {
+	    //     return <div />
+	    //   }
+
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      console.log(this.props);
+
+	      return _react2.default.createElement('div', null, _react2.default.createElement('input', { className: 'item', id: todo._id, onDoubleClick: this.handleDoubleClickLower }));
+	    }
+	  }]);
+
+	  return TodoComponent;
+	}(_react2.default.Component);
+
+	exports.default = TodoComponent;
+
+/***/ }),
+/* 216 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -25426,45 +25733,516 @@
 	  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 	}
 
-	var TodoList = function (_React$Component) {
-	  _inherits(TodoList, _React$Component);
+	var FilterTodos = function (_React$Component) {
+	  _inherits(FilterTodos, _React$Component);
 
-	  function TodoList() {
-	    _classCallCheck(this, TodoList);
+	  function FilterTodos() {
+	    _classCallCheck(this, FilterTodos);
 
-	    return _possibleConstructorReturn(this, (TodoList.__proto__ || Object.getPrototypeOf(TodoList)).apply(this, arguments));
+	    return _possibleConstructorReturn(this, (FilterTodos.__proto__ || Object.getPrototypeOf(FilterTodos)).apply(this, arguments));
 	  }
 
-	  _createClass(TodoList, [{
+	  _createClass(FilterTodos, [{
 	    key: "render",
 	    value: function render() {
-	      var _this2 = this;
-
-	      if (!this.props.todos) {
-	        return _react2.default.createElement("div", null);
-	      }
-	      var todos = this.props.todos;
-
-	      return _react2.default.createElement("div", { className: "todo-list" }, _react2.default.createElement("ul", null, _react2.default.createElement("li", { className: "list-item-header" }, _react2.default.createElement("div", { className: "list-item-header-grid" }, _react2.default.createElement("span", { className: "item-header" }, "ToDo Item"), _react2.default.createElement("span", { className: "project-header" }, "Project"), _react2.default.createElement("span", { className: "delete-header" }, "x"))), _react2.default.createElement("hr", null), todos.map(function (todo, idx) {
-	        console.log(todo.idNum);
-	        console.log('true id: ', todo._id);
-	        return _react2.default.createElement("li", { className: "list-item", key: idx }, _react2.default.createElement("div", { className: "list-item-grid" }, _react2.default.createElement("span", { className: "item" }, todo.todoItem), _react2.default.createElement("span", { className: "project" }, todo.project), _react2.default.createElement("span", { className: "delete" }, _react2.default.createElement("input", {
-	          id: idx,
-	          name: "delete",
-	          type: "checkbox",
-	          checked: _this2.props.delete,
-	          onChange: _this2.props.handleDelete }))));
-	      })));
+	      return _react2.default.createElement("div", null, _react2.default.createElement("h4", null, "Filters:"), _react2.default.createElement("form", null, _react2.default.createElement("div", { className: "radio" }, _react2.default.createElement("label", null, _react2.default.createElement("input", { type: "radio", value: "all",
+	        checked: this.props.cFilterOption === "all",
+	        onChange: this.props.handleCompleteFilterChange }), "All")), _react2.default.createElement("div", { className: "radio" }, _react2.default.createElement("label", null, _react2.default.createElement("input", { type: "radio", value: "false",
+	        checked: this.props.cFilterOption === "false",
+	        onChange: this.props.handleCompleteFilterChange }), "Active")), _react2.default.createElement("div", { className: "radio" }, _react2.default.createElement("label", null, _react2.default.createElement("input", { type: "radio", value: "true",
+	        checked: this.props.cFilterOption === "true",
+	        onChange: this.props.handleCompleteFilterChange }), "Completed"))), _react2.default.createElement("br", null), _react2.default.createElement("label", null, "By Project:", _react2.default.createElement("select", { name: "pFilterOption", id: "project", onChange: this.props.handleProjectFilterChange }, _react2.default.createElement("option", { value: "all" }, "all"), _react2.default.createElement("option", { value: "general" }, "general"), _react2.default.createElement("option", { value: "programming" }, "programming"), _react2.default.createElement("option", { value: "moving" }, "moving"), _react2.default.createElement("option", { value: "household" }, "household"), _react2.default.createElement("option", { value: "Rasp Pi" }, "Rasp Pi"), _react2.default.createElement("option", { value: "chores" }, "chores"))));
 	    }
 	  }]);
 
-	  return TodoList;
+	  return FilterTodos;
 	}(_react2.default.Component);
 
-	exports.default = TodoList;
+	exports.default = FilterTodos;
 
 /***/ }),
-/* 215 */
+/* 217 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () {
+	  function defineProperties(target, props) {
+	    for (var i = 0; i < props.length; i++) {
+	      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+	    }
+	  }return function (Constructor, protoProps, staticProps) {
+	    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	  };
+	}();
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactTextareaAutosize = __webpack_require__(218);
+
+	var _reactTextareaAutosize2 = _interopRequireDefault(_reactTextareaAutosize);
+
+	function _interopRequireDefault(obj) {
+	  return obj && obj.__esModule ? obj : { default: obj };
+	}
+
+	function _classCallCheck(instance, Constructor) {
+	  if (!(instance instanceof Constructor)) {
+	    throw new TypeError("Cannot call a class as a function");
+	  }
+	}
+
+	function _possibleConstructorReturn(self, call) {
+	  if (!self) {
+	    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+	  }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+	}
+
+	function _inherits(subClass, superClass) {
+	  if (typeof superClass !== "function" && superClass !== null) {
+	    throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
+	  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+	}
+
+	var NoteAdder = function (_React$Component) {
+	  _inherits(NoteAdder, _React$Component);
+
+	  function NoteAdder() {
+	    _classCallCheck(this, NoteAdder);
+
+	    return _possibleConstructorReturn(this, (NoteAdder.__proto__ || Object.getPrototypeOf(NoteAdder)).apply(this, arguments));
+	  }
+
+	  _createClass(NoteAdder, [{
+	    key: "render",
+	    value: function render() {
+	      return _react2.default.createElement("div", null, _react2.default.createElement(_reactTextareaAutosize2.default, {
+	        minRows: 3,
+	        maxRows: 6,
+	        placeholder: "enter notes..."
+	      }));
+	    }
+	  }]);
+
+	  return NoteAdder;
+	}(_react2.default.Component);
+
+	exports.default = NoteAdder;
+
+/***/ }),
+/* 218 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
+
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	var React = _interopDefault(__webpack_require__(1));
+	var PropTypes = _interopDefault(__webpack_require__(187));
+
+	function _extends() {
+	  _extends = Object.assign || function (target) {
+	    for (var i = 1; i < arguments.length; i++) {
+	      var source = arguments[i];
+
+	      for (var key in source) {
+	        if (Object.prototype.hasOwnProperty.call(source, key)) {
+	          target[key] = source[key];
+	        }
+	      }
+	    }
+
+	    return target;
+	  };
+
+	  return _extends.apply(this, arguments);
+	}
+
+	function _inheritsLoose(subClass, superClass) {
+	  subClass.prototype = Object.create(superClass.prototype);
+	  subClass.prototype.constructor = subClass;
+	  subClass.__proto__ = superClass;
+	}
+
+	function _objectWithoutProperties(source, excluded) {
+	  if (source == null) return {};
+	  var target = {};
+	  var sourceKeys = Object.keys(source);
+	  var key, i;
+
+	  for (i = 0; i < sourceKeys.length; i++) {
+	    key = sourceKeys[i];
+	    if (excluded.indexOf(key) >= 0) continue;
+	    target[key] = source[key];
+	  }
+
+	  if (Object.getOwnPropertySymbols) {
+	    var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+
+	    for (i = 0; i < sourceSymbolKeys.length; i++) {
+	      key = sourceSymbolKeys[i];
+	      if (excluded.indexOf(key) >= 0) continue;
+	      if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
+	      target[key] = source[key];
+	    }
+	  }
+
+	  return target;
+	}
+
+	var isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+
+	var isIE = isBrowser ? !!document.documentElement.currentStyle : false;
+	var hiddenTextarea = isBrowser && document.createElement('textarea');
+	var HIDDEN_TEXTAREA_STYLE = {
+	  'min-height': '0',
+	  'max-height': 'none',
+	  height: '0',
+	  visibility: 'hidden',
+	  overflow: 'hidden',
+	  position: 'absolute',
+	  'z-index': '-1000',
+	  top: '0',
+	  right: '0'
+	};
+	var SIZING_STYLE = ['letter-spacing', 'line-height', 'font-family', 'font-weight', 'font-size', 'font-style', 'tab-size', 'text-rendering', 'text-transform', 'width', 'text-indent', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width', 'box-sizing'];
+	var computedStyleCache = {};
+	function calculateNodeHeight(uiTextNode, uid, useCache, minRows, maxRows) {
+	  if (useCache === void 0) {
+	    useCache = false;
+	  }
+
+	  if (minRows === void 0) {
+	    minRows = null;
+	  }
+
+	  if (maxRows === void 0) {
+	    maxRows = null;
+	  }
+
+	  if (hiddenTextarea.parentNode === null) {
+	    document.body.appendChild(hiddenTextarea);
+	  } // Copy all CSS properties that have an impact on the height of the content in
+	  // the textbox
+
+
+	  var nodeStyling = calculateNodeStyling(uiTextNode, uid, useCache);
+
+	  if (nodeStyling === null) {
+	    return null;
+	  }
+
+	  var paddingSize = nodeStyling.paddingSize,
+	      borderSize = nodeStyling.borderSize,
+	      boxSizing = nodeStyling.boxSizing,
+	      sizingStyle = nodeStyling.sizingStyle; // Need to have the overflow attribute to hide the scrollbar otherwise
+	  // text-lines will not calculated properly as the shadow will technically be
+	  // narrower for content
+
+	  Object.keys(sizingStyle).forEach(function (key) {
+	    hiddenTextarea.style[key] = sizingStyle[key];
+	  });
+	  Object.keys(HIDDEN_TEXTAREA_STYLE).forEach(function (key) {
+	    hiddenTextarea.style.setProperty(key, HIDDEN_TEXTAREA_STYLE[key], 'important');
+	  });
+	  hiddenTextarea.value = uiTextNode.value || uiTextNode.placeholder || 'x';
+	  var minHeight = -Infinity;
+	  var maxHeight = Infinity;
+	  var height = hiddenTextarea.scrollHeight;
+
+	  if (boxSizing === 'border-box') {
+	    // border-box: add border, since height = content + padding + border
+	    height = height + borderSize;
+	  } else if (boxSizing === 'content-box') {
+	    // remove padding, since height = content
+	    height = height - paddingSize;
+	  } // measure height of a textarea with a single row
+
+
+	  hiddenTextarea.value = 'x';
+	  var singleRowHeight = hiddenTextarea.scrollHeight - paddingSize;
+
+	  if (minRows !== null || maxRows !== null) {
+	    if (minRows !== null) {
+	      minHeight = singleRowHeight * minRows;
+
+	      if (boxSizing === 'border-box') {
+	        minHeight = minHeight + paddingSize + borderSize;
+	      }
+
+	      height = Math.max(minHeight, height);
+	    }
+
+	    if (maxRows !== null) {
+	      maxHeight = singleRowHeight * maxRows;
+
+	      if (boxSizing === 'border-box') {
+	        maxHeight = maxHeight + paddingSize + borderSize;
+	      }
+
+	      height = Math.min(maxHeight, height);
+	    }
+	  }
+
+	  var rowCount = Math.floor(height / singleRowHeight);
+	  return {
+	    height: height,
+	    minHeight: minHeight,
+	    maxHeight: maxHeight,
+	    rowCount: rowCount
+	  };
+	}
+
+	function calculateNodeStyling(node, uid, useCache) {
+	  if (useCache === void 0) {
+	    useCache = false;
+	  }
+
+	  if (useCache && computedStyleCache[uid]) {
+	    return computedStyleCache[uid];
+	  }
+
+	  var style = window.getComputedStyle(node);
+
+	  if (style === null) {
+	    return null;
+	  }
+
+	  var sizingStyle = SIZING_STYLE.reduce(function (obj, name) {
+	    obj[name] = style.getPropertyValue(name);
+	    return obj;
+	  }, {});
+	  var boxSizing = sizingStyle['box-sizing']; // IE (Edge has already correct behaviour) returns content width as computed width
+	  // so we need to add manually padding and border widths
+
+	  if (isIE && boxSizing === 'border-box') {
+	    sizingStyle.width = parseFloat(sizingStyle.width) + parseFloat(style['border-right-width']) + parseFloat(style['border-left-width']) + parseFloat(style['padding-right']) + parseFloat(style['padding-left']) + 'px';
+	  }
+
+	  var paddingSize = parseFloat(sizingStyle['padding-bottom']) + parseFloat(sizingStyle['padding-top']);
+	  var borderSize = parseFloat(sizingStyle['border-bottom-width']) + parseFloat(sizingStyle['border-top-width']);
+	  var nodeInfo = {
+	    sizingStyle: sizingStyle,
+	    paddingSize: paddingSize,
+	    borderSize: borderSize,
+	    boxSizing: boxSizing
+	  };
+
+	  if (useCache) {
+	    computedStyleCache[uid] = nodeInfo;
+	  }
+
+	  return nodeInfo;
+	}
+
+	var purgeCache = function purgeCache(uid) {
+	  return delete computedStyleCache[uid];
+	};
+
+	function autoInc(seed) {
+	  if (seed === void 0) {
+	    seed = 0;
+	  }
+
+	  return function () {
+	    return ++seed;
+	  };
+	}
+
+	var uid = autoInc();
+
+	/**
+	 * <TextareaAutosize />
+	 */
+	var noop = function noop() {}; // IE11 has a problem with eval source maps, can be reproduced with:
+	// eval('"use strict"; var onNextFrame = window.cancelAnimationFrame; onNextFrame(4);')
+	// so we bind window as context in dev modes
+
+
+	var _ref = isBrowser && window.requestAnimationFrame ? process.env.NODE_ENV !== 'development' ? [window.requestAnimationFrame, window.cancelAnimationFrame] : [window.requestAnimationFrame.bind(window), window.cancelAnimationFrame.bind(window)] : [setTimeout, clearTimeout];
+	var onNextFrame = _ref[0];
+	var clearNextFrameAction = _ref[1];
+
+	var TextareaAutosize =
+	/*#__PURE__*/
+	function (_React$Component) {
+	  _inheritsLoose(TextareaAutosize, _React$Component);
+
+	  function TextareaAutosize(props) {
+	    var _this;
+
+	    _this = _React$Component.call(this, props) || this;
+	    _this._resizeLock = false;
+
+	    _this._onRootDOMNode = function (node) {
+	      _this._rootDOMNode = node;
+
+	      if (_this.props.inputRef) {
+	        _this.props.inputRef(node);
+	      }
+	    };
+
+	    _this._onChange = function (event) {
+	      if (!_this._controlled) {
+	        _this._resizeComponent();
+	      }
+
+	      _this.props.onChange(event);
+	    };
+
+	    _this._resizeComponent = function (callback) {
+	      if (callback === void 0) {
+	        callback = noop;
+	      }
+
+	      if (typeof _this._rootDOMNode === 'undefined') {
+	        callback();
+	        return;
+	      }
+
+	      var nodeHeight = calculateNodeHeight(_this._rootDOMNode, _this._uid, _this.props.useCacheForDOMMeasurements, _this.props.minRows, _this.props.maxRows);
+
+	      if (nodeHeight === null) {
+	        callback();
+	        return;
+	      }
+
+	      var height = nodeHeight.height,
+	          minHeight = nodeHeight.minHeight,
+	          maxHeight = nodeHeight.maxHeight,
+	          rowCount = nodeHeight.rowCount;
+	      _this.rowCount = rowCount;
+
+	      if (_this.state.height !== height || _this.state.minHeight !== minHeight || _this.state.maxHeight !== maxHeight) {
+	        _this.setState({
+	          height: height,
+	          minHeight: minHeight,
+	          maxHeight: maxHeight
+	        }, callback);
+
+	        return;
+	      }
+
+	      callback();
+	    };
+
+	    _this.state = {
+	      height: props.style && props.style.height || 0,
+	      minHeight: -Infinity,
+	      maxHeight: Infinity
+	    };
+	    _this._uid = uid();
+	    _this._controlled = typeof props.value === 'string';
+	    return _this;
+	  }
+
+	  var _proto = TextareaAutosize.prototype;
+
+	  _proto.render = function render() {
+	    var _props = this.props,
+	        _minRows = _props.minRows,
+	        _maxRows = _props.maxRows,
+	        _onHeightChange = _props.onHeightChange,
+	        _useCacheForDOMMeasurements = _props.useCacheForDOMMeasurements,
+	        _inputRef = _props.inputRef,
+	        props = _objectWithoutProperties(_props, ["minRows", "maxRows", "onHeightChange", "useCacheForDOMMeasurements", "inputRef"]);
+	    props.style = _extends({}, props.style, {
+	      height: this.state.height
+	    });
+	    var maxHeight = Math.max(props.style.maxHeight || Infinity, this.state.maxHeight);
+
+	    if (maxHeight < this.state.height) {
+	      props.style.overflow = 'hidden';
+	    }
+
+	    return React.createElement("textarea", _extends({}, props, {
+	      onChange: this._onChange,
+	      ref: this._onRootDOMNode
+	    }));
+	  };
+
+	  _proto.componentDidMount = function componentDidMount() {
+	    var _this2 = this;
+
+	    this._resizeComponent(); // Working around Firefox bug which runs resize listeners even when other JS is running at the same moment
+	    // causing competing rerenders (due to setState in the listener) in React.
+	    // More can be found here - facebook/react#6324
+
+
+	    this._resizeListener = function () {
+	      if (_this2._resizeLock) {
+	        return;
+	      }
+
+	      _this2._resizeLock = true;
+
+	      _this2._resizeComponent(function () {
+	        return _this2._resizeLock = false;
+	      });
+	    };
+
+	    window.addEventListener('resize', this._resizeListener);
+	  };
+
+	  _proto.componentWillReceiveProps = function componentWillReceiveProps() {
+	    var _this3 = this;
+
+	    this._clearNextFrame();
+
+	    this._onNextFrameActionId = onNextFrame(function () {
+	      return _this3._resizeComponent();
+	    });
+	  };
+
+	  _proto.componentDidUpdate = function componentDidUpdate(prevProps, prevState) {
+	    if (this.state.height !== prevState.height) {
+	      this.props.onHeightChange(this.state.height, this);
+	    }
+	  };
+
+	  _proto.componentWillUnmount = function componentWillUnmount() {
+	    this._clearNextFrame();
+
+	    window.removeEventListener('resize', this._resizeListener);
+	    purgeCache(this._uid);
+	  };
+
+	  _proto._clearNextFrame = function _clearNextFrame() {
+	    clearNextFrameAction(this._onNextFrameActionId);
+	  };
+
+	  return TextareaAutosize;
+	}(React.Component);
+
+	TextareaAutosize.propTypes = {
+	  value: PropTypes.string,
+	  onChange: PropTypes.func,
+	  onHeightChange: PropTypes.func,
+	  useCacheForDOMMeasurements: PropTypes.bool,
+	  minRows: PropTypes.number,
+	  maxRows: PropTypes.number,
+	  inputRef: PropTypes.func
+	};
+	TextareaAutosize.defaultProps = {
+	  onChange: noop,
+	  onHeightChange: noop,
+	  useCacheForDOMMeasurements: false
+	};
+
+	module.exports = TextareaAutosize;
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/***/ }),
+/* 219 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';

@@ -15,33 +15,73 @@ todoController.getAllTodos = (req, res, next) => {
   });
 };
 
+todoController.getProjectTodos = (req, res, next) => {
+  console.log('req.query.project, complete: ', req.query.project, req.query.complete);
+  if(!req.query.project || req.query.project === 'all'){
+    if(req.query.complete === 'all'){
+      Item.
+      find({}, function(error, data){
+        req.body.loadedTodos = data;
+        next();
+      });
+    }else{
+      Item.
+      find().
+      where('complete').equals(req.query.complete). 
+      // could add a sort right here to sory by priority
+      exec(function(error, data){
+        req.body.loadedTodos = data;
+        next();
+      });
+    }
+  }else{
+    if(req.query.complete === 'all'){
+      Item.
+      find().
+      where('project').equals(req.query.project).
+      // could add a sort right here to sory by priority
+      exec(function(error, data){
+        req.body.loadedTodos = data;
+        next();
+      });
+    }else{  
+      Item.
+      find().
+      where('project').equals(req.query.project).
+      where('complete').equals(req.query.complete). 
+      // could add a sort right here to sory by priority
+      exec(function(error, data){
+        req.body.loadedTodos = data;
+        next();
+      });
+    }  
+  }
+};
+
 /**
 * createItem - create a new Item model and then save the user to the database.
 *
 * @param req - http.IncomingRequest
 * @param res - http.ServerResponse
 */
-todoController.createItem = (req, res, next) => {
-
+todoController.createItem = ((req, res, next) => {
   let newItem = new Item;
-  // console.log('createItem req.body: ', req.body);
   newItem.todoItem = req.body.todoItem;
   newItem.complete = req.body.complete;  
   newItem.recurring = req.body.recurring;
   newItem.project = req.body.project;
   newItem.idNum = req.body.idNum;  
-  // console.log('newItem to save: ', newItem);
-  
-  newItem.save(function(error){
-    if(error){
-      console.log('Error saving: ', {error});
+
+  newItem.save(function(err){
+    if(err){
+      console.log('Error saving: ', {err});
     }else{
       // console.log('successfully saved item: ', req.body[0])
       res.addOn = 'hello from dB';
       next();
     }
   })
-};
+});
 
 /**
 * verifyUser - Obtain username and password from the request body, locate
@@ -51,25 +91,12 @@ todoController.createItem = (req, res, next) => {
 * @param req - http.IncomingRequest
 * @param res - http.ServerResponse
 */
-todoController.UpdateItem = (req, res, next) => {
-  // write code here
-  console.log('updateItem: ', req.body);
-  // var query  = Item.where({ 'idNum': req.body.idNum});
-  // query.findOne(function (err, item) {
-  //   if (err) console.log("error");
-  //   if (item) {
-  //     if(item.id === req.body.id){
-  //       // update to match;
-  //       item.todoItem = req.body.text;
-  //       item.recurring = req.body.recurring;
-  //       item.project = req.body.project;
-  //       next();
-  //     }else{
-  //       res.status(200);
-  //       res.end();
-  //     }
-  //   }
-  // });
+todoController.completeItem = (req, res, next) => {
+  // console.log('completeItem: ', req.body);
+  Item.findByIdAndUpdate(req.body._id, { $set: { complete: !req.body.complete }}, function(err){
+    if(err) res.send(err);
+    next();
+  });
 };
 
 todoController.deleteItem = (req, res, next) => {

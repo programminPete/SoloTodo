@@ -11,7 +11,8 @@ const todoSchema = new Schema({
   notTodo: {type: Boolean},  
   year: {type: Number},
   month: {type: Number},
-  day: {type: Number}
+  day: {type: Number},
+  editable: {type: Boolean}
 });
 
 module.exports = mongoose.model('Item', todoSchema);
